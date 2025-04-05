@@ -21,15 +21,13 @@ pipeline {
     }
 
     stage('Push to Container Registry') {
-      steps {
-        withCredentials([usernamePassword(credentialsId: "${DOCKER_CREDENTIALS_ID}", usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
-          sh """
-            sh """
-              echo $PASSWORD | docker login -u $USERNAME --password-stdin
-              docker push $IMAGE
-            """
-
-          """
+  steps {
+    withCredentials([usernamePassword(credentialsId: "${DOCKER_CREDENTIALS_ID}", usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+      script {
+        sh """
+          echo \$PASSWORD | docker login -u \$USERNAME --password-stdin
+          docker push \$IMAGE
+        """
         }
       }
     }
