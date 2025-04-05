@@ -1,31 +1,5 @@
-pipeline {
-    agent {
-        kubernetes {
-            label 'docker-agent'
-            defaultContainer 'docker'
-            yaml """
-apiVersion: v1
-kind: Pod
-spec:
-  containers:
-  - name: docker
-    image: docker:24.0.6-dind
-    command:
-    - cat
-    tty: true
-    securityContext:
-      privileged: true
-    volumeMounts:
-    - name: docker-graph-storage
-      mountPath: /var/lib/docker
-  - name: jnlp
-    image: jenkins/inbound-agent:3301.v4363ddcca_4e7-3
-  volumes:
-  - name: docker-graph-storage
-    emptyDir: {}
-"""
-        }
-    }
+ pipeline {
+    agent any
 
     environment {
         IMAGE = "maheshvenkata133/telugu-evolution:${BUILD_NUMBER}"
@@ -42,8 +16,6 @@ spec:
 
         stage('Build Docker Image') {
             steps {
-                sh 'dockerd-entrypoint.sh & sleep 20'
-                sh 'docker version'
                 sh 'docker build -t $IMAGE .'
             }
         }
@@ -51,10 +23,12 @@ spec:
         stage('Push to Container Registry') {
             steps {
                 withCredentials([usernamePassword(credentialsId: "${DOCKER_CREDENTIALS_ID}", usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
-                    sh '''
-                        echo $PASSWORD | docker login -u $USERNAME --password-stdin
-                        docker push $IMAGE
-                    '''
+                    script {
+                        sh """
+                            echo \$PASSWORD | docker login -u \$USERNAME --password-stdin
+                            docker push \$IMAGE
+                        """
+                    }
                 }
             }
         }
