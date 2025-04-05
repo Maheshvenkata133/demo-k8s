@@ -2,42 +2,54 @@ pipeline {
   agent any
 
   environment {
-    DOCKER_IMAGE = "gcr.io/YOUR_PROJECT_ID/my-app:${BUILD_NUMBER}"
+    IMAGE = "gcr.io/psec-dev/telugu-evolution:${BUILD_NUMBER}"   // change to your image
+    GIT_CREDENTIALS_ID = 'github-token'   // set this in Jenkins
+    DOCKER_CREDENTIALS_ID = 'gcr-json'    // set this in Jenkins
   }
 
   stages {
-    stage('Checkout') {
+    stage('Clone Repo') {
       steps {
-        git branch: 'main', url: 'https://github.com/YOUR_USER/demo-k8s.git'
+        git branch: 'main', url: 'https://github.com/Maheshvenkata133/demo-k8s.git'
       }
     }
 
     stage('Build Docker Image') {
       steps {
-        script {
-          sh 'docker build -t $DOCKER_IMAGE .'
+        sh 'docker build -t $IMAGE .'
+      }
+    }
+
+    stage('Push to Container Registry') {
+      steps {
+        withCredentials([usernamePassword(credentialsId: "${DOCKER_CREDENTIALS_ID}", usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+          sh """
+            echo $PASSWORD | docker login -u $USERNAME --password-stdin https://gcr.io
+            docker push $IMAGE
+          """
         }
       }
     }
 
-    stage('Push Docker Image') {
+    stage('Update deployment.yaml') {
       steps {
         script {
-          sh 'docker push $DOCKER_IMAGE'
+          def file = 'manifests/deployment.yaml'
+          sh "sed -i 's|image: .*|image: ${IMAGE}|' ${file}"
         }
       }
     }
 
-    stage('Update Manifests') {
+    stage('Push to GitHub') {
       steps {
-        script {
-          sh '''
-            sed -i "s|image: .*|image: $DOCKER_IMAGE|" manifests/deployment.yaml
-            git config user.email "ci@yourdomain.com"
-            git config user.name "CI Bot"
-            git commit -am "Update image to $DOCKER_IMAGE"
-            git push origin main
-          '''
+        withCredentials([usernamePassword(credentialsId: "${GIT_CREDENTIALS_ID}", usernameVariable: 'GIT_USER', passwordVariable: 'GIT_PASS')]) {
+          sh """
+            git config user.name "ci-bot"
+            git config user.email "ci@example.com"
+            git add manifests/deployment.yaml
+            git commit -m "CI: update image to $IMAGE"
+            git push https://${GIT_USER}:${GIT_PASS}@github.com/Maheshvenkata133/demo-k8s.git
+          """
         }
       }
     }
