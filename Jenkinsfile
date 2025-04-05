@@ -2,10 +2,10 @@ pipeline {
   agent any
 
   environment {
-    IMAGE = "gcr.io/psec-dev/telugu-evolution:${BUILD_NUMBER}"   // change to your image
-    GIT_CREDENTIALS_ID = 'github-token'   // set this in Jenkins
-    DOCKER_CREDENTIALS_ID = 'gcr-json'    // set this in Jenkins
-  }
+  IMAGE = "maheshvenkata133/telugu-evolution:${BUILD_NUMBER}"
+  GIT_CREDENTIALS_ID = 'github-token'
+  DOCKER_CREDENTIALS_ID = 'dockerhub-creds'  // You’ll set this in Jenkins
+}
 
   stages {
     stage('Clone Repo') {
@@ -24,8 +24,11 @@ pipeline {
       steps {
         withCredentials([usernamePassword(credentialsId: "${DOCKER_CREDENTIALS_ID}", usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
           sh """
-            echo $PASSWORD | docker login -u $USERNAME --password-stdin https://gcr.io
-            docker push $IMAGE
+            sh """
+              echo $PASSWORD | docker login -u $USERNAME --password-stdin
+              docker push $IMAGE
+            """
+
           """
         }
       }
