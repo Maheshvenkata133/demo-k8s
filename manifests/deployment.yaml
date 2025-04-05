@@ -17,6 +17,6 @@ spec:
     spec:
       containers:
       - name: my-app-container
-        image: nginx:latest
+        image: maheshvenkata133/telugu-evolution:latest  # <-- Jenkins replaces this
         ports:
         - containerPort: 80
