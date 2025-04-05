@@ -10,7 +10,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git credentialsId: "${GIT_CREDENTIALS_ID}", url: 'https://github.com/Maheshvenkata133/demo-k8s.git'
+                git branch: 'main', credentialsId: "${GIT_CREDENTIALS_ID}", url: 'https://github.com/Maheshvenkata133/demo-k8s.git'
             }
         }
 
@@ -43,4 +43,4 @@ pipeline {
             }
         }
     }
-} // ✅ This closes the whole pipeline
+}
