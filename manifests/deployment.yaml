@@ -17,6 +17,6 @@ spec:
     spec:
       containers:
       - name: my-app-container
-        image: maheshvenkata133/telugu-evolution:latest  # <-- Jenkins replaces this, if this image not avaiabe then use this --> nginx:latest
+        image: nginx:latest  # <-- Jenkins replaces this, if this image not avaiabe then use this --> nginx:latest
         ports:
         - containerPort: 80
