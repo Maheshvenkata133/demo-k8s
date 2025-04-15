@@ -1,8 +1,8 @@
- pipeline {
+pipeline {
     agent any
 
     environment {
-        IMAGE = "maheshvenkata133/telugu-evolution:${BUILD_NUMBER}"
+        IMAGE = "maheshvenkata133/telugu-evolution:${BUILD_NUMBER}-${GIT_COMMIT}"
         GIT_CREDENTIALS_ID = 'github-token'
         DOCKER_CREDENTIALS_ID = 'dockerhub-creds'
     }
@@ -35,11 +35,19 @@
 
         stage('Update Deployment') {
             steps {
-                sh 'sed -i "s|image: .*|image: $IMAGE|" manifests/deployment.yaml'
-                sh 'git config user.email "jenkins@example.com"'
-                sh 'git config user.name "Jenkins CI"'
-                sh 'git commit -am "Updated image to $IMAGE" || echo "No changes to commit"'
-                sh 'git push origin main'
+                script {
+                    // Ensure the deployment file exists and is updated correctly
+                    sh 'sed -i "s|image: .*|image: $IMAGE|" manifests/deployment.yaml'
+                    
+                    // Add proper git user configuration
+                    sh 'git config user.email "jenkins@example.com"'
+                    sh 'git config user.name "Jenkins CI"'
+                    
+                    // Pull the latest changes before committing to avoid conflicts
+                    sh 'git pull origin main'
+                    sh 'git commit -am "Updated image to $IMAGE" || echo "No changes to commit"'
+                    sh 'git push origin main'
+                }
             }
         }
     }
